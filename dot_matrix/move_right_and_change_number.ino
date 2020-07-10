@@ -1,0 +1,79 @@
+#define ROW_0 12
+#define COL_0 4
+
+char numbers[10][8] = {
+  {0x00, 0x38, 0x44, 0x4C, 0x54, 0x64, 0x44, 0x38},
+  {0x00, 0x10, 0x30, 0x50, 0x10, 0x10, 0x10, 0x7c},
+  {0x00, 0x38, 0x44, 0x04, 0x08, 0x10, 0x20, 0x7c},
+  {0x00, 0x38, 0x44, 0x04, 0x18, 0x04, 0x44, 0x38},
+  {0x00, 0x08, 0x18, 0x28, 0x48, 0x7C, 0x08, 0x08},
+  {0x00, 0x7C, 0x40, 0x78, 0x04, 0x04, 0x44, 0x38 },
+  {0x00, 0x38, 0x40, 0x40, 0x78, 0x44, 0x44, 0x38},
+  {0x00, 0x7C, 0x04, 0x08, 0x10, 0x20, 0x20, 0x20},
+  {0x00, 0x38, 0x44, 0x44, 0x38, 0x44, 0x44, 0x38},
+  {0x00, 0x38, 0x44, 0x44, 0x3C, 0x04, 0x44, 0x38}
+};
+short print_num[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+short save_num = 0x00;
+char move_count = 0;
+char num_count = 0;
+int count = 0;
+void setup()
+{
+  Serial.begin(9600);
+
+
+  for (int i = 0; i < 16; i++) {
+    pinMode(i + COL_0, OUTPUT);
+  }
+  for (int i = 0; i < 8; i++)
+  {
+    digitalWrite(ROW_0 + i, LOW);
+  }
+
+  for (int i = 0; i < 8; i++)
+  {
+    save_num = numbers[num_count][i];
+    print_num[i] |= (save_num << 8);
+  }
+  num_count++;
+}
+void loop()
+{
+  for (int j = 0; j < 8; j++)
+  {
+    for (int i = 0; i < 8; i++)
+    {
+      digitalWrite(ROW_0 + i, LOW);
+    }
+
+    for (int i = 0; i < 8; i++) {
+      if ((print_num[j] & (0x80 >> i)) != 0)digitalWrite(i + COL_0, LOW);
+      else digitalWrite(i + COL_0, HIGH);
+    }
+
+    digitalWrite(ROW_0 + j, HIGH);
+    delay(1);
+  }
+  count++;
+  if (count == 25)
+  {
+    count = 0;
+    move_count++;
+    for (int i = 0; i < 8; i++)
+    {
+      print_num[i] = print_num[i] >> 1;
+    }
+    if (move_count == 8)
+    {
+      for (int i = 0; i < 8; i++)
+      {
+        save_num = numbers[num_count][i];
+        print_num[i] |= (save_num << 8);
+      }
+      move_count = 0;
+      num_count++;
+      if (num_count == 10)num_count = 0;
+    }
+  }
+}
