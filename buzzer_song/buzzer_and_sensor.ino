@@ -2,10 +2,7 @@
 #define TRIGGER 4
 #define BUZZER_PIN 5
 
-#define DISTANCE 30 // 1초마다 소리 나는 기준 거리
 #define BUZZER_DELAY 1911 //부저 음 딜레이 - micro 기준
-
-int isOnBuzzer = 0;
 
 void setup()
 {
@@ -24,6 +21,7 @@ unsigned long p_millis_2 = 0;
 unsigned long c_micros = 0;
 unsigned long p_micros = 0;
 
+int isOnBuzzer = 0;
 int isOnDelayCount = 0;
 int delays = 1000;
 int buzzer_toggle = 0;
