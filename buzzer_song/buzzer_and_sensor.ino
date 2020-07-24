@@ -2,7 +2,7 @@
 #define TRIGGER 4
 #define BUZZER_PIN 5
 
-#define BUZZER_DELAY 1911 //부저 음 딜레이 - micro 기준
+#define BUZZER_DELAY 1431 //부저 음 딜레이 - micro 기준
 
 void setup()
 {
@@ -22,10 +22,14 @@ unsigned long c_micros = 0;
 unsigned long p_micros = 0;
 
 int isOnBuzzer = 0;
-int isOnDelayCount = 0;
 int delays = 1000;
 int buzzer_toggle = 0;
 unsigned int buzzer_count = 0;
+
+double rising_time = 0;
+double falling_time = 0;
+int diff_time = 0;
+double distance = 51; //시작하자마자 소리를 내지 않도록 소리가 나지 않는 최소점인 51로 설정
 
 void loop()
 {
@@ -37,9 +41,8 @@ void loop()
     delayMicroseconds(10);
     digitalWrite(TRIGGER, LOW);
   }
-  if (isOnDelayCount == 1)
+  if (distance <= 50)
   {
-    isOnDelayCount = 0;
     if (c_millis - p_millis_2 > delays)
     {
       p_millis_2 = c_millis;
@@ -74,10 +77,6 @@ void loop()
 #define ECHO_RISING 1
 #define ECHO_FALLING 0
 
-double rising_time = 0;
-double falling_time = 0;
-int diff_time = 0;
-double distance = 0;
 
 void myISR()
 {
@@ -94,8 +93,6 @@ void myISR()
     distance = 0.017 * (double)diff_time;
 
     Serial.println(distance);
-    if (distance > 50) isOnDelayCount = 0;
-    else isOnDelayCount = 1;
 
     if (distance <= 10)delays = 0;
     else if (distance <= 20)delays = 100;
