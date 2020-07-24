@@ -1,49 +1,82 @@
-#define EHCO 2
-#define TRIGGER 3
-#define BUZZER_PIN 4
+#define EHCO 3
+#define TRIGGER 4
+#define BUZZER_PIN 5
 
 #define DISTANCE 30 // 1초마다 소리 나는 기준 거리
 #define BUZZER_DELAY 1911 //부저 음 딜레이 - micro 기준
 
+int isOnBuzzer = 0;
 
 void setup()
 {
+  TCCR1A = 0x00;
+  TCCR1B = 0x0D;
+  TCCR1C = 0x00;
+
+  OCR1A = 625;
+
   pinMode(EHCO, INPUT); //ehco
   pinMode(TRIGGER, OUTPUT); //trigger
 
   pinMode(BUZZER_PIN, OUTPUT);
 
   Serial.begin(9600);
-  attachInterrupt(0, myISR, CHANGE);
+  attachInterrupt(1, myISR, CHANGE);
 }
 
 unsigned long c_millis = 0;
 unsigned long p_millis_1 = 0;
 unsigned long p_millis_2 = 0;
+unsigned long c_micros = 0;
+unsigned long p_micros = 0;
 
+int isOnDelayCount = 0;
 int delays = 1000;
+int buzzer_toggle = 0;
+unsigned int buzzer_count = 0;
 
 void loop()
 {
   c_millis = millis();
-  if (c_millis - p_millis_1 > 1000)
+  if (c_millis - p_millis_1 > 10)
   {
     p_millis_1 = c_millis;
-    digitalWrite(3, HIGH);
+    digitalWrite(TRIGGER, HIGH);
     delayMicroseconds(10);
-    digitalWrite(3, LOW);
+    digitalWrite(TRIGGER, LOW);
   }
-  if (c_millis - p_millis_2 > delays)
+  if (isOnDelayCount == 1)
   {
-    p_millis_2 = c_millis;
-    for (int i = 0; i < 1000000 / BUZZER_DELAY / 10; i++)
+    isOnDelayCount = 0;
+    if (c_millis - p_millis_2 > delays)
     {
-      digitalWrite(4, HIGH);
-      delayMicroseconds(BUZZER_DELAY);
-      digitalWrite(4, LOW);
-      delayMicroseconds(BUZZER_DELAY);
+      p_millis_2 = c_millis;
+      isOnBuzzer = 1;
     }
   }
+
+  if (isOnBuzzer == 1)
+  {
+    c_micros = micros();
+    if (c_micros - p_micros > BUZZER_DELAY)
+    {
+      p_micros = c_micros;
+      if (buzzer_toggle == 0) {
+        buzzer_toggle = 1;
+        digitalWrite(BUZZER_PIN, HIGH);
+      }
+      else {
+        buzzer_toggle = 0;
+        digitalWrite(BUZZER_PIN, LOW);
+      }
+      buzzer_count++;
+      if (buzzer_count == 1000000 / BUZZER_DELAY / 20) {
+        buzzer_count = 0;
+        isOnBuzzer = 0;
+      }
+    }
+  }
+
 }
 
 #define ECHO_RISING 1
@@ -56,16 +89,12 @@ double distance = 0;
 
 void myISR()
 {
-  int in_data = digitalRead(2);
+  int in_data = digitalRead(EHCO);
 
   if (in_data == ECHO_RISING) {
-    //Serial.println("Up!!");
-
     rising_time = micros();
   }
   else if (in_data == ECHO_FALLING) {
-    //Serial.println("Down...");
-
     falling_time = micros();
 
     diff_time = falling_time - rising_time;
@@ -73,8 +102,12 @@ void myISR()
     distance = 0.017 * (double)diff_time;
 
     Serial.println(distance);
-    if (distance > DISTANCE)delays = 1000;
-    else if(distance < 0)delays = 0;
-    else delays = (int)((double)1000 * (distance / DISTANCE));
+    if (distance > 50) isOnDelayCount = 0;
+    else isOnDelayCount = 1;
+
+    if (distance <= 10)delays = 0;
+    else if (distance <= 20)delays = 100;
+    else if (distance <= 30)delays = 500;
+    else if (distance <= 50)delays = 1000;
   }
 }
