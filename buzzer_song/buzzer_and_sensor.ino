@@ -9,12 +9,6 @@ int isOnBuzzer = 0;
 
 void setup()
 {
-  TCCR1A = 0x00;
-  TCCR1B = 0x0D;
-  TCCR1C = 0x00;
-
-  OCR1A = 625;
-
   pinMode(EHCO, INPUT); //ehco
   pinMode(TRIGGER, OUTPUT); //trigger
 
