@@ -1,5 +1,5 @@
-#define ROW_0 12
-#define COL_0 4
+#define ROW_0 4
+#define COL_0 12
 
 char value_0 = 0x23;
 char value_1 = 0x37;
